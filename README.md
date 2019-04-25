@@ -1,5 +1,9 @@
 FireAware: 
 =======
+## Project Description
+This is the final group project for course -- COMPSCI2XB3. 
+
+
 
 ## How to try out the server
 1. Go to eclipse.
@@ -12,4 +16,3 @@ FireAware:
 (Note: you must add 5 buildings, nothing less)
 8. Once 5 buildings have been selected, you can click to find an optimal path (our graphing algorithm) (MAY TAKE 20 SECONDS IF YOUR COMPUTER IS OLDER)
 
-Description: This is the final project for course -- COMPSCI2XB3 
