@@ -13,39 +13,3 @@ FireAware:
 8. Once 5 buildings have been selected, you can click to find an optimal path (our graphing algorithm) (MAY TAKE 20 SECONDS IF YOUR COMPUTER IS OLDER)
 
 Description: This is the final project for course -- COMPSCI2XB3 
-## class to convert to a geo json
-1. Sorting algorithms:
- * sort (arr) -- ^ Java sorting...
-
-
-## class to read a csv file and convert each line to a object
-...
-
-
-## Building ADT
-building ADT:   
-	* state variables:    
-		location: a set of tuple(latitude, longitude)   
-		Inspecting Unit   
-		date inspection completed  
-	* methods:  
-		boolean isSafe
-
-## Date ADT
-date ADT (string) //string of form "01/01/2013" \
-	* state variable: \
-		last inspection date \
-	* method: \
-		boolean needInspec 
-		
-## Sorting API
-...
-
-## Graphing API
-...
-
-## Testing
-...
-
-## Reference & Credits
-
