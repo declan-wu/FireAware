@@ -1,0 +1,12 @@
+COMPSCI 2XB3
+Rishi Arora, 400020165
+Full-stack developer, designer
+Jennifer Cheng, 400118301
+Team Lead, designer
+Esam Haris, 400145598
+Frontend developer, tester, log admin
+Declan Wu, 400132033
+Backend developer, researcher
+The fact that the work being submitted by us is our group work
+
+see instructions.txt

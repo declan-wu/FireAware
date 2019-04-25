@@ -1,0 +1,89 @@
+record types:
+State = {visited, visiting, unvisited}
+CooedinatesT = tuple of (longitude: float, latitude: float)
+
+------------------------------------------
+Generic Node Module:
+uses: State
+Node(T)
+state variables:
+	visitState: State 
+	connectedTo: a sequence of tuples of (node: Node, weight: distance)
+
+access routine:
+	getConnections
+	toString
+
+------------------------------------------
+Generic Graph Module
+uses: 
+	Node
+state variables:
+	nodes:  a sequence of tuple of (node: Node, adjacencyList: a sequence of Nodes)
+
+access routine:
+	addNode
+	addEdge
+	dfs
+	bfs
+
+------------------------------------------
+Building ADT:
+uses: 	
+	CooedinatesT
+	Jave.Date
+
+state variables:
+	date: Jave.Date 
+	coordinates: CooedinatesT
+	bourough: String
+	buildingId: Int
+	totalInspection: Int
+	isSafe: Boolean
+
+access routine:
+	getters
+	setDate
+	incrementInspection
+	nextInspectionDate
+	double disntanceTo(Building b)
+
+------------------------------------------
+BuildingGraph Module: Graph(Building)
+uses:
+	Generic Graph Module
+	Building ADT
+
+state variables:
+
+access routine:
+	getClosestBuilding(b: Building, isSafe=True) //overloading 
+
+	
+
+------------------------------------------
+
+Note(possible design decision?): 
+
+1. if the building is safe, we probalby don't need an adjency list for it. becasue it is already safe and we don't have to find the closest safe building for that building. 
+
+and each unsafe building's adcency list will only include 2 closest nodes that is safe.
+
+2. the dataset is based on inspections, but we only need to add  the most recent date to each Building. 
+
+3. when parse the file, we divide the building into 2 lists: safe and unsafe
+
+we can further break down the dataset by their bourough to reduce the need to traverse through the whole dataset. 
+
+
+
+
+
+Questions:
+1. what should be the edge connecting building? possibly distance between buildings
+but how do we choose which two buildings should be connected? 
+2. What functionalities do we wanna achieve in a graph?
+3. 
+
+
+

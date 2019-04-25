@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <meta charset='utf-8' />
+      <title>FireAware</title>
+      <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+
+      <!-- import libraries -->
+      <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.1/mapbox-gl.js'></script>
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+      <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.1/mapbox-gl.css' rel='stylesheet' />
+      <script src="https://cdn.jsdelivr.net/npm/@turf/turf@5/turf.min.js"></script>
+
+      <link href='main.css'/ rel='stylesheet'>
+      <style>
+         body { margin:0; padding:0; }
+         #map { position:absolute; top:0; bottom:0; width:100%; }
+      </style>
+   </head>
+   <body>
+      <div id="sidebar-wrapper">
+         <h3> Enter a Building ID </h3>
+         <div class="input-group search-bar">
+            <input type="text" id="searchTerm" class="form-control" placeholder="">
+            <span class="input-group-btn">
+            <button class="btn btn-default" id="search" type="button">Search</button>
+            </span>
+         </div>
+         <div class="extrabuttons" >         
+            <button class="btn btn-default" id="all" type="button">All</button>
+            <button class="btn btn-default" id="filter" type="button">Dangerous</button>
+         </div>
+      </div>
+      <div id="sidebar-wrapper-graph">
+         <p style="margin-top: 2px; margin-right: 2px; margin-left: 2px;">Add buildings from the map to find an optimal path</p>
+         <ol>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <button class="btn btn-default" id="findPath" type="button">Find Path</button>
+         </ol>
+      </div>
+      <div id='map'></div>
+      <script>
+         mapboxgl.accessToken = 'pk.eyJ1IjoidW5mb2xkeCIsImEiOiJjamJmcmgxcWszNDA1MzNub3l6M3N1NmlvIn0.L8FyK6kJaxL51OwRHtVpcA';
+         
+         // default map settings
+         var map = new mapboxgl.Map({
+         container: 'map',
+         style: 'mapbox://styles/unfoldx/cjtyyweff47nf1fnzjtsb0ktk',
+         center: [-73.977556, 40.770435],
+         //pitch: 0,
+         //bearing: -64.80, 
+         zoom: 12.0
+         });
+         
+         function removeLayer() {
+           map.removeLayer('source');
+           map.removeSource('source');
+         }
+         
+         // hooks for buttons
+         $("#search").on("click", function() {
+             search();
+         });
+         
+         $("#all").on("click", function() {
+             all();
+         });
+         
+         $("#filter").on("click", function() {
+             filter();
+         });
+         
+         $("#findPath").on("click", function() {
+             findPath();
+         });
+         
+         // zooms map to fit everything on screen
+         function fitToScreen() {
+             var f = map.querySourceFeatures('source')
+           var bbox = turf.bbox({
+             type: 'FeatureCollection',
+             features: f
+           });
+           map.fitBounds(bbox, {padding: 25});  
+         
+         
+         }
+
+         // calls backend to search for something
+         function search() {
+           removeLayer();
+           var searchTerm = $("#searchTerm").val();
+             var url = 'http://127.0.0.1:8080/api?id=' + searchTerm;
+         
+           map.addSource('source', { type: 'geojson', data: url});
+         
+           map.addLayer( {
+             "id" : "source",
+             "type" : "circle",
+             "source" : "source",
+             "paint" : {
+                                "circle-radius": 5,
+                                 "circle-color": "#ff0000"
+             }
+           });
+         
+           waitForMapLoaded();
+         }
+         
+         // finds a path by calling the backend
+         // backend runs graphing algorithm and it returns a path
+         function findPath() {
+             var list = [];
+             $("li").each(function(){
+               list.push($(this).text());
+             });
+             removeLayer();
+         
+             var url = "http://127.0.0.1:8080/api/multi?id1=" + list[0] + "&id2=" + list[1] + "&id3=" + list[2] + "&id4=" + list[3] + "&id5=" + list[4];
+               map.addSource('source', { type: 'geojson', data: url});
+         
+             map.addLayer( {
+               "id" : "source",
+               "type" : "circle",
+               "source" : "source",
+               "paint" : {
+                                  "circle-radius": 5,
+                                   "circle-color": "#ff0000"
+               }
+             });
+         
+         
+             // create path
+             var url = "http://127.0.0.1:8080/api/path?id1=" + list[0] + "&id2=" + list[1] + "&id3=" + list[2] + "&id4=" + list[3] + "&id5=" + list[4];
+         
+         
+         
+             var geojson = {
+                 "type":"Feature",
+                 "properties": {},
+                 "geometry":{
+                     "type":"LineString",
+                     "coordinates": []
+                 }
+             };
+         
+             $.getJSON(url, function (data) {
+                 var isFirst = true;
+                 var first;;
+                 $.each(data, function (key, model) {
+                     if (isFirst) {
+                         isFirst = false;
+                         first = [parseFloat(model.lng), parseFloat(model.lat)];
+                     }
+                         geojson.geometry.coordinates.push([parseFloat(model.lng), parseFloat(model.lat)]);
+                 })
+         
+                   geojson.geometry.coordinates.push(first);
+         
+         
+         
+               map.addLayer({
+                 "id": "route",
+                 "type": "line",
+                 "source": {
+                 "type": "geojson",
+                 "data": geojson
+                 
+                 },
+                 "layout": {
+                 "line-join": "round",
+                 "line-cap": "round"
+                 },
+                 "paint": {
+                 "line-color": "#888",
+                 "line-width": 4
+                 }
+                 });
+         
+         
+             });
+         
+         
+             waitForMapLoaded();
+         
+         
+         }
+
+         // returns all the buildings on the map from backend api
+         function all() {
+           removeLayer();
+           var url = 'http://127.0.0.1:8080/api/all';
+           map.addSource('source', { type: 'geojson', data: url});
+         
+           map.addLayer( {
+             "id" : "source",
+             "type" : "circle",
+             "source" : "source",
+             "paint" : {
+                                "circle-radius": 5,
+                                 "circle-color": "#ff0000"
+             }
+           });
+         
+           waitForMapLoaded();
+         }
+         
+         function filter() {
+           removeLayer();
+           var url = 'http://127.0.0.1:8080/api/filter/date';
+           map.addSource('source', { type: 'geojson', data: url});
+         
+           map.addLayer( {
+             "id" : "source",
+             "type" : "circle",
+             "source" : "source",
+             "paint" : {
+                                "circle-radius": 5,
+                                 "circle-color": "#ff0000"
+             }
+           });
+         
+           waitForMapLoaded();
+         } 
+         
+         map.on('load', function() {
+           var url = 'http://127.0.0.1:8080/api/filter/date';
+           map.addSource('source', { type: 'geojson', data: url});
+         
+           map.addLayer( {
+            "id" : "source",
+            "type" : "circle",
+            "source" : "source",
+            "paint" : {
+                                "circle-radius": 5,
+                                 "circle-color": "#ff0000"
+            }
+           })
+           
+          map.addControl(new mapboxgl.NavigationControl());
+         
+          waitForMapLoaded();
+         
+         
+         
+         // https://docs.mapbox.com/mapbox-gl-js/example/popup-on-click/
+         // map popup
+          map.on('click', 'source', function (e) {
+         var coordinates = e.features[0].geometry.coordinates.slice();
+         var id = e.features[0].properties.id;
+         var description = e.features[0].properties.date;
+          
+         
+         while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+         coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+         }
+         
+         var html = "<h4> Building : " + id + "</h4><h4> Date : " + description + "</h4>" + '<input type="button" value="Add Building" onclick="addBuilding(' + id +')">';
+         
+         new mapboxgl.Popup()
+         .setLngLat(coordinates)
+         .setHTML(html)
+         .addTo(map);
+         });
+          
+         // Change the cursor to a pointer when the mouse is over the places layer.
+         map.on('mouseenter', 'source', function () {
+         map.getCanvas().style.cursor = 'pointer';
+         });
+          
+         // Change it back to a pointer when it leaves.
+         map.on('mouseleave', 'source', function () {
+         map.getCanvas().style.cursor = '';
+         });
+         });
+         
+         
+         
+         function waitForMapLoaded() {
+             if(!map.loaded()) {
+                 window.setTimeout(waitForMapLoaded, 100);
+             } else {
+                 fitToScreen();
+             }
+         }
+         
+         
+         
+         // jquery stuff which adds a building to the sidebar
+         function addBuilding(id) {
+           console.log(id);
+           $("li").each(function(){ 
+                 if ($(this).text() == id) {
+                   return false;
+                 }
+                 if ($(this).text() == "") {
+                     $(this).text(id)
+                     return false;
+                 }
+         
+           });
+         }
+         
+          
+         
+         
+      </script>
+   </body>
+</html>
